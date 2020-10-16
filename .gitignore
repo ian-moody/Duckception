@@ -1,0 +1,5 @@
+server/target
+node_modules
+web/dist
+.cache
+.DS_Store
