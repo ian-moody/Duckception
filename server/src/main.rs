@@ -1,11 +1,41 @@
+use rand::Rng;
+use std::cmp::Ordering;
 use std::io;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 
-fn main() {
-  let mut guess = String::with_capacity(10);
-  io::stdin().read_line(&mut guess).expect("Failed to read");
-  println!("Your guess: {}", guess);
+fn main() {}
+
+pub struct Client {
+  pub user_id: usize,
+  pub topics: Vec<String>,
+  // pub sender : Option<mpsc::UnboundedSender<std::result::Result<Message, warp::Error>>>
+}
+
+const FOO: &str = "Failed to read";
+
+fn number_game() {
+  let number: u32 = rand::thread_rng().gen_range(1, 101);
+  loop {
+    let mut guess = String::with_capacity(10);
+    io::stdin().read_line(&mut guess).expect(FOO);
+    let guess: u32 = match guess.trim().parse() {
+      Ok(num) => num,
+      Err(_) => {
+        println!("Please enter a number");
+        continue;
+      }
+    };
+    println!("Your guess: {}", guess);
+    match guess.cmp(&number) {
+      Ordering::Less => println!("Less"),
+      Ordering::Greater => println!("Greater"),
+      Ordering::Equal => {
+        println!("Equal");
+        break;
+      }
+    }
+  }
 }
 
 fn start_tcp_demo() {
