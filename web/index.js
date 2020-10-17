@@ -2,30 +2,36 @@
 import { cool } from './test'
 import './main.css'
 
-console.log('BOOM FAST')
 let socket_open = false
 const socket = new WebSocket('wss://echo.websocket.org')
 
 socket.addEventListener('open', event => { socket_open = true })
 
-socket.addEventListener('message', event => { 
-  console.log('Message from server ', event.data) 
-  document.cookie = "last_response=" + event.data
+socket.addEventListener('message', event => {
+  document.cookie = `last_response=${event.data};SameSite=Strict`
 })
 
 const send_message = message => {
   if (socket_open) {
-    console.log('Sending message:', message)
     socket.send(message)
   }
 }
 
 window.onload = () => {
   cool()
-  console.log('DOM load')
+  const { pathname, ...rest } = window.location
+  const room = pathname.slice(1)
+  console.log('window onload', rest, room)
   const button = document.getElementById('submit_name')
   const input = document.getElementById('name_input')
-  input.addEventListener('input', e => send_message(input.value))
+  button.addEventListener('click', e => {
+    console.log('Button pressed')
+    send_message(input.value)
+  })
+
+  input.addEventListener('input', e => {
+    console.log('text changed', input.value)
+  })
 
   //onclick = neat
   //fetch('http://127.0.0.1:7878')

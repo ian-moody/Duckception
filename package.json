@@ -1,0 +1,12 @@
+{
+  "name": "duckception",
+  "version": "1.0.0",
+  "scripts": {
+    "web": "rm -rf dist && parcel watch web/index.html web/404.html",
+    "server": "cargo run",
+    "build": "rm -rf dist && parcel build web/index.html web/404.html && cargo build --features include_site"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.12.4"
+  }
+}

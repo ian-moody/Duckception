@@ -1,17 +1,3 @@
-use rand::Rng;
-use std::cmp::Ordering;
-use std::io;
-use std::io::prelude::*;
-use std::net::{TcpListener, TcpStream};
-
-fn main() {}
-
-pub struct Client {
-  pub user_id: usize,
-  pub topics: Vec<String>,
-  // pub sender : Option<mpsc::UnboundedSender<std::result::Result<Message, warp::Error>>>
-}
-
 const FOO: &str = "Failed to read";
 
 fn number_game() {
