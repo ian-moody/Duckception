@@ -1,113 +1,78 @@
-use rand::Rng;
-use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::io;
-use std::io::prelude::*;
-use std::net::{TcpListener, TcpStream};
-use std::path::Path;
-use std::sync::{Arc, Mutex};
-use warp::{http::Response, Filter};
+// use futures::TryStreamExt as _;
+use hyper::service::{make_service_fn, service_fn};
+use hyper::{Body, Method, Request, Response, Server, StatusCode};
+use std::convert::Infallible;
+use tokio::fs;
 
-#[cfg(feature = "include_site")]
-fn abc() {
-  println!("Import site ");
+// COMPILE TIME FILE INCLUDES
+
+// static INDEDX_HTML: &str = include_str!("../dist/index.html");
+static NOT_FOUND_HTML: &str = include_str!("../dist/404.html");
+// static files: HashMap<&str, &str> = [("index.html", INDEDX_HTML)].iter().cloned().collect();
+// fn get_file(file_name: &str) -> &str {
+//   match file_name {
+//     "index.html" => INDEDX_HTML,
+//     _ => NOT_FOUND_HTML,
+//   }
+// }
+
+async fn hey_world(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
+  let path_parts: Vec<&str> = req.uri().path().split("/").collect();
+  let part = path_parts[1];
+  let is_valid_path = path_parts.len() == 2 && !part.is_empty();
+  println!("method? {} path_parts {:?}", req.method(), path_parts);
+
+  match req.method() {
+    &Method::GET => {
+      let mut response = Response::new(Body::empty());
+      let html_body = if is_valid_path {
+        let file_loc = format!("dist/{}", part);
+        println!("hey? {} {}", part, file_loc);
+        let content = match fs::read(file_loc).await {
+          Ok(file) => file,
+          Err(_) => br#"e{"ddie"}"#.to_vec(),
+        };
+        Body::from(content)
+      } else {
+        Body::from(NOT_FOUND_HTML)
+      };
+      *response.body_mut() = html_body;
+      Ok(response)
+    }
+    &Method::POST => {
+      println!("Just POSTED!!!");
+      let full_body = hyper::body::to_bytes(req.into_body()).await?;
+
+      let reversed = full_body
+        .iter()
+        .rev()
+        .cloned()
+        .map(|byte| byte.to_ascii_uppercase())
+        .collect::<Vec<u8>>();
+
+      // let mapping = req.into_body().map_ok(|chunk| {
+      //   chunk
+      //     .iter()
+      //     .map(|byte| byte.to_ascii_uppercase())
+      //     .collect::<Vec<u8>>()
+      // });
+      // Ok(Response::new(Body::wrap_stream(mapping))
+      Ok(Response::new(Body::from(reversed)))
+    }
+    _ => {
+      let mut response = Response::default();
+      *response.status_mut() = StatusCode::NOT_FOUND;
+      Ok(response)
+    }
+  }
 }
-
-#[cfg(not(feature = "include_site"))]
-fn abc() {
-  println!("get from disk every time");
-}
-
-// mod ws;
-// mod handler;
-
-pub struct Client {
-  pub user_id: usize,
-  pub topics: Vec<String>,
-  // pub sender : Option<mpsc::UnboundedSender<std::result::Result<Message, warp::Error>>>
-}
-
-pub struct RegisterRequest {
-  user_id: usize,
-}
-
-pub struct RegisterResponse {
-  url: String,
-}
-
-pub struct Event {
-  topic: String,
-  user_id: Option<usize>,
-  message: String,
-}
-
-pub struct TopicRequst {
-  topics: Vec<String>,
-}
-
-// type Result<T> = std::result::Result<T, Rejection>;
-type Clients = Arc<Mutex<HashMap<String, Client>>>;
 
 #[tokio::main]
-async fn main() {
-  
-  abc();
-
-  static BODY: &str = r#"
-<html>
-  <head>
-      <title>HTML with warp!</title>
-  </head>
-  <body>
-      <h1>404</h1>
-  </body>
-</html>
-"#;
-
-  static BODY2: &str = r#"
-<html>
-  <head>
-      <title>HTML with warp!</title>
-  </head>
-  <body>
-      <h1>test index.html</h1>
-  </body>
-</html>
-"#;
-
-  let clients: Clients = Arc::new(Mutex::new(HashMap::new()));
-
-  let not_found = warp::any().map(|| {
-    let number: u32 = rand::thread_rng().gen_range(1, 101);
-    println!("Hello {}", number);
-    return warp::reply::with_header(
-      warp::reply::html(BODY),
-      "Set-Cookie",
-      format!("rust_warp_cookie=val_{}; SameSite=Strict", number),
-    );
-  });
-
-  let get_game = |a: String| {
-    let number: u32 = rand::thread_rng().gen_range(1, 101);
-    println!("Hello {} {}", number, a);
-    if a != "index.html" {
-      println!("HI")
-    }
-    return warp::reply::with_header(
-      warp::reply::html(BODY2),
-      "Set-Cookie",
-      format!("rust_warp_cookie=val_{}; SameSite=Strict", number),
-    );
-  };
-
-  let index = warp::path!(String).map(get_game);
-  let www = warp::fs::dir("dist");
-  let valid_dist = Path::new("dist/index.html").exists();
-  println!("valid_dist {}", valid_dist);
-  // let tt = warp::path!(String).map(|a: String| format!("Hello {}", a));
-
-  // let routes = index.or(www).or(not_found);
-  let routes = www;
-
-  warp::serve(routes).run(([127, 0, 0, 1], 7878)).await;
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+  let service_maker = make_service_fn(|_conn| async { Ok::<_, Infallible>(service_fn(hey_world)) });
+  let socket_address = ([127, 0, 0, 1], 7878).into();
+  let server = Server::bind(&socket_address).serve(service_maker);
+  println!("Started {}", socket_address);
+  server.await?;
+  Ok(())
 }

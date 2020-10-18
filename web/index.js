@@ -2,19 +2,19 @@
 import { cool } from './test'
 import './main.css'
 
-let socket_open = false
-const socket = new WebSocket('wss://echo.websocket.org')
+// let socket_open = false
+// const socket = new WebSocket('wss://echo.websocket.org')
 
-socket.addEventListener('open', event => { socket_open = true })
+// socket.addEventListener('open', event => { socket_open = true })
 
-socket.addEventListener('message', event => {
-  document.cookie = `last_response=${event.data};SameSite=Strict`
-})
+// socket.addEventListener('message', event => {
+//   document.cookie = `last_response=${event.data};SameSite=Strict`
+// })
 
 const send_message = message => {
-  if (socket_open) {
-    socket.send(message)
-  }
+  // if (socket_open) {
+  //   socket.send(message)
+  // }
 }
 
 window.onload = () => {

@@ -1,20 +1,18 @@
 [package]
-name = "duckception_server"
+name = "duckception"
 version = "0.1.0"
 authors = ["Ian Moody <imoody1@hotmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
 include_site = []
 
 [dependencies]
-tokio = { version = "0.2", features = ["macros", "sync"] }
-warp = "0.2"
-serde = {version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-futures = { version = "0.3", default-features = false }
-uuid = { version = "0.4", features = ["serde", "v4"] }
-# For Example code
-rand = "0.7"
+hyper = "0.13"
+tokio = { version = "0.2", features = ["full"] }
+futures = { version = "0.3" }
+# serde = {version = "1.0", features = ["derive"] }
+# serde_json = "1.0"
+# uuid = { version = "0.4", features = ["serde", "v4"] }
+# warp = "0.2"
+# rand = "0.7"
