@@ -1,8 +1,9 @@
 {
+  "version": "0.1.0",
   "scripts": {
-    "web": "rm -rf dist && parcel watch web/index.html web/404.html",
+    "web": "rm -rf dist && parcel watch web/index.html web/404.html --public-url /web",
     "server": "cargo run",
-    "build": "rm -rf dist && parcel build web/index.html web/404.html && cargo build --release --features include_site"
+    "build": "rm -rf dist && parcel build web/index.html web/404.html --public-url /web && cargo build --release --features include_site && strip ./target/release/duckception"
   },
   "dependencies": {},
   "devDependencies": {
