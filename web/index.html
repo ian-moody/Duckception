@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+  <link rel="stylesheet" href="./main.css">
   <script src="./index.js"></script>
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -11,11 +12,50 @@
 </head>
 
 <body>
+  <noscript>
+    <div>Javascript is required to run this app</div>
+  </noscript>
 
-  <div>
-    <p id="info"></p>
-    <input type="text" id="name_input" name="name">
-    <button class="button" id="submit_name">Enter</button>
+  <div>Dark Theme </div>
+  <label class="switch">
+    <input id="theme_toggle" type="checkbox">
+    <span class="slider"></span>
+  </label>
+
+  <br />
+
+  <div id="version"></div>
+  <div id="transition"></div>
+
+  <div style="width: 400px;">
+
+    <div id="info"></div>
+
+    <div id="spectate" class="player-card">
+      <div style="font-size: x-large;">Welcome to the game</div>
+      <div>currently you are a spectator.</div>
+      <br />
+      <input type="text" id="name_input" name="name" placeholder="Name" autocomplete="off">
+      <button id="submit_name">Join</button>
+    </div>
+
+
+    <div id="spectate" class="player-card">
+      <div style="font-size: x-large;">James</div>
+      <div>Waiting for game to begin...</div>
+      <br />
+    </div>
+
+
+    <div class="player-card">
+      <div class="initial">D</div>
+      Daniel
+    </div>
+
+    <div class="player-card">
+      <div class="initial">S</div>
+      Samueal
+    </div>
   </div>
 
 </body>

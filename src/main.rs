@@ -9,6 +9,7 @@ use tokio::fs;
 use uuid::Uuid;
 #[macro_use]
 extern crate lazy_static;
+use mime_guess;
 use regex::Regex;
 
 mod game;
@@ -94,11 +95,12 @@ async fn controller(
           let mut response = Response::new(Body::empty());
           if path_parts.len() == 3 {
             let user_id = match req.headers().get("Cookie") {
-              // TODO Handle case where cookie is not a valid uuid
+              // TODO Handle case where cookie is not a valid UUID
               Some(c) => Uuid::parse_str(get_user_id_cookie(c)).unwrap().to_string(),
               None => {
                 let uuid = Uuid::new_v4().to_string();
-                let cookie_value = format!("user_id={}; SameSite=Strict; HttpOnly=true; Path=/;", uuid);
+                let cookie_value =
+                  format!("user_id={}; SameSite=Strict; HttpOnly=true; Path=/;", uuid);
                 response.headers_mut().insert(
                   hyper::header::SET_COOKIE,
                   HeaderValue::from_str(&cookie_value).unwrap(),
@@ -161,10 +163,20 @@ async fn controller(
           if path_parts.len() >= 2 {
             let requested_file = path_parts[2..].join("/");
             let mut problem = true;
+            // TODO brotti compression if supported
+            // https://crates.io/crates/async-compression
             if !requested_file.ends_with(".html") {
               match get_file(&requested_file).await {
                 Ok(file) => {
                   problem = false;
+                  let media_type = mime_guess::from_path(&requested_file)
+                    .first_or_octet_stream()
+                    .to_string();
+                  println!("Media type guess {}", media_type);
+                  response.headers_mut().insert(
+                    hyper::header::CONTENT_TYPE,
+                    HeaderValue::from_str(&media_type).unwrap(),
+                  );
                   *response.body_mut() = Body::from(file);
                 }
                 Err(_) => {}
@@ -196,7 +208,11 @@ async fn controller(
     }
     _ => {
       let mut response = Response::default();
-      *response.status_mut() = StatusCode::NOT_FOUND;
+      *response.status_mut() = StatusCode::METHOD_NOT_ALLOWED;
+      response.headers_mut().insert(
+        hyper::header::ALLOW,
+        HeaderValue::from_str("GET, POST").unwrap(),
+      );
       Ok(response)
     }
   }
@@ -205,6 +221,8 @@ async fn controller(
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
   let games = Arc::new(Mutex::new(HashMap::new()));
+
+  // TODO implement TLS
   let socket_address = ([127, 0, 0, 1], 7878).into();
   let server = Server::bind(&socket_address).serve(GameServiceMaker { games: games });
   println!("Serving game at {}", socket_address);
