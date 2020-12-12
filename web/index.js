@@ -1,14 +1,27 @@
 
 import { cool } from './test'
 
-let socket_open = false
-const socket = new WebSocket('wss://echo.websocket.org')//'ws://127.0.0.1:7878')
+// let socket_open = false
+const socket = new WebSocket('ws://127.0.0.1:7878/ws')
 
-socket.addEventListener('open', event => { socket_open = true })
+// socket.addEventListener('open', event => { socket_open = true })
 
-socket.addEventListener('message', event => {
-  document.cookie = `last_response=${event.data};SameSite=Strict`
-})
+// socket.addEventListener('message', event => {
+//   document.cookie = `last_response=${event.data};SameSite=Strict`
+// })
+
+let roleCard, callCount = 0
+const roleCardMouseListener = e => {
+  const rect = e.target.getBoundingClientRect()
+  const x_center = rect.width / 2, y_center = rect.height / 2
+  // console.log(rect)
+  const x = e.clientX - rect.left - x_center
+  const y = e.clientY - rect.top - y_center
+  callCount++
+  console.log(callCount, x, y)
+  const hyp = Math.sqrt(x * x + y * y)
+  roleCard.setAttribute('style', `transform: rotate3d(${y}, ${-x}, 0, ${hyp * .1}deg); transition: 0s`)
+}
 
 const send_message = message => {
   // if (socket_open) {
@@ -17,8 +30,9 @@ const send_message = message => {
 }
 
 // Might not need , cannot read cookie for a different path
+
 // const getCookie = cookie_name => {
-//   const name = cookie_name + "="
+//   const name = cookie_name + '='
 //   const ca = decodeURIComponent(document.cookie).split(';')
 //   console.log(document.cookie, ca)
 //   for (let i = 0; i < ca.length; i++) {
@@ -39,6 +53,7 @@ const sleepComments = [
 
 const wakeComments = [
   'Good morning',
+  'Wake up'
 ]
 
 const randArrayIndex = arr => Math.floor(Math.random() * arr.length)
@@ -56,19 +71,32 @@ const dayTransition = checked => {
   }, 1100)
 }
 
+
 // window.onload = () => {
 window.addEventListener('DOMContentLoaded', () => {
   cool()
+
+  if (process.env.NODE_ENV !== 'production') {
+    document.getElementById('debug').style.display = 'block'
+    // const debug = document.createElement('div')
+    // debug.id = 'debug'
+    // debug.innerHTML = ``
+    // document.body.appendChild(debug)
+  }
   const { pathname, ...rest } = window.location
 
-  transition = document.getElementById("transition")
+  roleCard = document.getElementById('role-card')
+  roleCard.onmousemove = roleCardMouseListener
+  roleCard.onmouseleave = () => roleCard.removeAttribute('style')
+
+  transition = document.getElementById('transition')
   const button = document.getElementById('submit_name')
   const input = document.getElementById('name_input')
   const version = document.getElementById('version')
   const info = document.getElementById('info')
-  const theme_toggle = document.getElementById("theme_toggle")
+  const theme_toggle = document.getElementById('theme_toggle')
 
-  theme_toggle.addEventListener('change', function () { dayTransition(this.checked) });
+  theme_toggle.addEventListener('change', function () { dayTransition(this.checked) })
   version.innerHTML = `Version ${process.env.npm_package_version}`
   info.innerHTML = `
   path: ${pathname} <br>

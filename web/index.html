@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <link rel="stylesheet" href="./main.css">
+  <link rel="stylesheet" href="./main.scss">
   <script src="./index.js"></script>
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -12,51 +12,56 @@
 </head>
 
 <body>
+
   <noscript>
-    <div>Javascript is required to run this app</div>
+    Javascript is required to Duckception
   </noscript>
 
-  <div>Dark Theme </div>
-  <label class="switch">
-    <input id="theme_toggle" type="checkbox">
-    <span class="slider"></span>
-  </label>
+  <div id="side">
 
-  <br />
 
-  <div id="version"></div>
-  <div id="transition"></div>
+    <div style="font-size: x-large;">Welcome to Duckception</div>
+    <div>currently you are a spectator.</div>
+    <br />
+    <input type="text" id="name_input" name="name" placeholder="Name" autocomplete="off">
+    <button id="submit_name" class="but">Join</button>
 
-  <div style="width: 400px;">
-
-    <div id="info"></div>
-
-    <div id="spectate" class="player-card">
-      <div style="font-size: x-large;">Welcome to the game</div>
-      <div>currently you are a spectator.</div>
-      <br />
-      <input type="text" id="name_input" name="name" placeholder="Name" autocomplete="off">
-      <button id="submit_name">Join</button>
+    <div id="card-area" style="height: 450px; display: flex; align-items: center; perspective: 800px;">
+      <div id="role-card">
+        <div class="side-a"></div>
+        <div class="side-b">COOL</div>
+      </div>
     </div>
 
+  </div>
 
-    <div id="spectate" class="player-card">
+  <div id="players">
+
+    <!-- <div id="spectate" class="card">
       <div style="font-size: x-large;">James</div>
       <div>Waiting for game to begin...</div>
       <br />
-    </div>
+    </div> -->
 
+    <!-- Example Initial -->
+    <!-- <div class="initial">D</div> -->
 
-    <div class="player-card">
-      <div class="initial">D</div>
-      Daniel
-    </div>
+    <button class="card profile">Daniel<img src="./prof2.jpg" /></button>
+    <button class="card profile">Jackie<img src="./prof1.jpg" /></button>
+    <button class="card profile">Samueal<img src="./prof4.jpg" /></button>
+    <button class="card profile">Sarrah<img src="./prof3.jpg" /></button>
 
-    <div class="player-card">
-      <div class="initial">S</div>
-      Samueal
-    </div>
   </div>
+
+  <div id="version"></div>
+
+  <div id="debug" style="display: none;">
+    <div>dark theme</div>
+    <label class="switch"><input id="theme_toggle" type="checkbox"><span class="slider"></span></label>
+    <div id="info"></div>
+  </div>
+
+  <div id="transition"></div>
 
 </body>
 

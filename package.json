@@ -1,12 +1,12 @@
 {
   "version": "0.1.0",
   "scripts": {
+    "serve": "parcel web/index.html",
     "web": "rm -rf dist && parcel watch web/index.html web/404.html --public-url /web",
-    "server": "cargo run",
-    "build": "rm -rf dist && parcel build web/index.html web/404.html --public-url /web && cargo build --release --features include_site && strip ./target/release/duckception"
+    "server": "cargo run"
   },
-  "dependencies": {},
   "devDependencies": {
-    "parcel-bundler": "^1.12.4"
+    "parcel-bundler": "^1.12.4",
+    "sass": "^1.30.0"
   }
 }
