@@ -8,18 +8,14 @@ include_site = []
 
 [dependencies]
 tokio = { version = "0.2", features = ["full"] }
-warp = "0.2"
+hyper = "0.13"
+futures = { version = "0.3" }
+lazy_static = "1.4.0"
+regex = "1.4.1"
+uuid = { version = "0.8", features = ["v4"] }
+mime_guess = "2.0.3"
+tokio-tungstenite = "0.11.0"
+futures-util = "0.3.7"
 
-# dependencies used in examples & testings code
-
-# hyper = "0.13"
-# futures = { version = "0.3" }
-# lazy_static = "1.4.0"
-# regex = "1.4.1"
-# uuid = { version = "0.8", features = ["v4"] }
-# mime_guess = "2.0.3"
-# tokio-tungstenite = "0.11.0"
-# futures-util = "0.3.7"
-
-# look into rust-embed for custom Derive Macro which loads files into the rust 
+# TODO look into rust-embed for custom Derive Macro which loads files into the rust 
 # binary at compile time during release and loads the file from the fs during dev
