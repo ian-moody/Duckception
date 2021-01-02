@@ -3,6 +3,8 @@
   "scripts": {
     "serve": "parcel web/index.html",
     "web": "rm -rf dist && parcel watch web/index.html web/404.html --public-url /web",
+    "build_web": "rm -rf dist && parcel build web/index.html web/404.html --public-url /web",
+    "build_server": "cargo build --release --features include_site && strip ./target/release/duckception",
     "server": "cargo run"
   },
   "devDependencies": {
