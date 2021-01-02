@@ -1,14 +1,22 @@
-
 import { cool } from './test'
 
-// let socket_open = false
-const socket = new WebSocket('ws://127.0.0.1:7878/ws')
+let socket
+let send_message = () => { console.log('Socket has not been opened') }
 
-// socket.addEventListener('open', event => { socket_open = true })
+const openGameSocket = () => {
+  socket = new WebSocket('ws://localhost:7878/ws')
+  
+  socket.addEventListener('open', event => {
+    send_message = message => socket.send(message)
+  })
+  
+  socket.addEventListener('message', event => {
+    const message = event.data
+    console.log('Got message from socket', message)
+    document.cookie = `last_response=${message};SameSite=Strict`
+  })
+}
 
-// socket.addEventListener('message', event => {
-//   document.cookie = `last_response=${event.data};SameSite=Strict`
-// })
 
 let roleCard, callCount = 0
 const roleCardMouseListener = e => {
@@ -18,15 +26,9 @@ const roleCardMouseListener = e => {
   const x = e.clientX - rect.left - x_center
   const y = e.clientY - rect.top - y_center
   callCount++
-  console.log(callCount, x, y)
+  // console.log(callCount, x, y)
   const hyp = Math.sqrt(x * x + y * y)
   roleCard.setAttribute('style', `transform: rotate3d(${y}, ${-x}, 0, ${hyp * .1}deg); transition: 0s`)
-}
-
-const send_message = message => {
-  // if (socket_open) {
-  //   socket.send(message)
-  // }
 }
 
 // Might not need , cannot read cookie for a different path
@@ -72,8 +74,12 @@ const dayTransition = checked => {
 }
 
 
+
 // window.onload = () => {
 window.addEventListener('DOMContentLoaded', () => {
+
+  openGameSocket()
+
   cool()
 
   if (process.env.NODE_ENV !== 'production') {

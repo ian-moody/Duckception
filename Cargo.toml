@@ -7,6 +7,7 @@ edition = "2018"
 include_site = []
 
 [dependencies]
+headers = "0.3.2"
 tokio = { version = "0.2", features = ["full"] }
 hyper = "0.13"
 futures = { version = "0.3" }
