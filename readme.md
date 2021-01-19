@@ -37,8 +37,6 @@ run ```build_full.sh``` located in the root directory for a full build
 
 - websocket / stream programming
 
-### Front end
-
 - Deeper understanding of web protocols
   - HTTP headers
   - file caching 
@@ -47,6 +45,9 @@ run ```build_full.sh``` located in the root directory for a full build
   - TLS
 
 - Session based authentication
+
+### Front end
+
 - "Modern" web app with Vanilla Javascript
 - CSS animations
 - A bit of SCSS
