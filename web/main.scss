@@ -94,12 +94,30 @@ input[type=text]:focus {
   border: 1px solid rgba(29, 29, 29, 0.322);
 }
 
+@keyframes falling {
+  0% { transform: scale(1.1) translateY(0vh); }
+  50% { transform: scale(0.8) translateY(150vh);}
+  100% { transform: translateY(150vh); }
+}
+
+@keyframes cut {
+  0% {   clip-path: polygon(100% 0, 100% 100%, 20% 100%, 90% 0, 90% 0, 20% 100%, 0 100%, 0 0); }
+  100% { clip-path: polygon(100% 0, 100% 100%, 20% 100%, 90% 0, 80% 0, 10% 100%, 0 100%, 0 0); }
+}
+
+.fall {
+  z-index: -1;
+  animation: falling 6s cubic-bezier(.78,-0.23,.19,1.71) 1s 1 normal forwards, cut 0.5s 1s 1 normal forwards;
+}
+
 .profile {
+  cursor: pointer;
   box-sizing: content-box;
   outline: none;
   display: flex;
   justify-content: space-between;
   transition: .25s;
+  text-align: left;
   font-size: x-large;
   flex-grow: 1;
   width: 33%;
@@ -107,21 +125,28 @@ input[type=text]:focus {
   height: 7rem;
 }
 
+body.dark .profile {
+  color: #d8d8d8
+}
+
 .profile:focus {
   border: 3px solid var(--emperor);
 }  
 
 .profile:hover { 
-  transform: rotate(1.1deg) scale(1.05);
+  transform: rotate(.9deg) scale(1.05);
 }
 
 .profile img {
-  max-width:100%;
+  max-height:100%;
   transition: .4s;
   border-radius: 0.8rem;
 }
 
 #players {
+  padding-bottom: 30px;
+  padding-top: 30px;
+  overflow: hidden;
   display: flex; 
   flex-direction: row; 
   flex-wrap: wrap;
@@ -257,9 +282,6 @@ input:checked + .slider { background-color: #9fccf1; }
 input:focus + .slider { box-shadow: 0 0 1px #9fccf1; }
 
 input:checked + .slider:before { transform: translateX(20px); }
-
-
-/* FOO */
 
 #role-card {
 	position: relative;

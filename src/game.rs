@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use uuid::Uuid;
 
 pub enum Role {
   /* Werewolf,
@@ -31,6 +32,8 @@ pub struct GameRoom {
 }
 
 pub type SharedGames = Arc<Mutex<HashMap<String, GameRoom>>>;
+
+pub fn make_user_id() -> String { Uuid::new_v4().to_string() }
 
 pub fn join_game(games: SharedGames, id: String, room_name: &str) {
   println!("{} is joining Room: {}", id, room_name);

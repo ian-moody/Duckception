@@ -1,19 +1,10 @@
 use futures::prelude::*;
 use headers::{self, HeaderMapExt};
-use hyper::{
-  header::{self, HeaderValue},
-  service::Service,
-  upgrade::Upgraded,
-  Body, Method, Request, Response, Server, StatusCode,
-};
-use std::{
-  pin::Pin,
-  task::{Context, Poll},
-};
+use hyper::{Body, Method, Request, Response, Server, StatusCode, header::{self, HeaderValue}, service::Service, upgrade::Upgraded};
+use std::{pin::Pin, task::{Context, Poll}, thread, time::Duration};
 #[macro_use]
 extern crate lazy_static;
 use tokio_tungstenite::{tungstenite::protocol, WebSocketStream};
-use uuid::Uuid;
 use mime_guess;
 mod game;
 mod util;
@@ -162,22 +153,27 @@ async fn controller(
         "room" => {
           let mut response = Response::new(Body::empty());
           if path_parts.len() == 3 {
-            let user_id = match req.headers().get("Cookie") {
-              // TODO Handle case where cookie is not a valid UUID
-              Some(c) => Uuid::parse_str(util::get_user_id_cookie(c)).unwrap().to_string(),
-              None => {
-                let uuid = Uuid::new_v4().to_string();
-                let cookie_value =
-                  format!("user_id={}; SameSite=Strict; HttpOnly=true; Path=/;", uuid);
-                response.headers_mut().insert(
-                  hyper::header::SET_COOKIE,
-                  HeaderValue::from_str(&cookie_value).unwrap(),
-                );
-                uuid
-              }
+
+            let mut set_session = false;
+            let room = path_parts[2];
+            let cookie = match req.headers().get("Cookie") {
+              Some(c) => c.to_str().unwrap_or(""), 
+              None => ""
             };
 
-            let room = path_parts[2];
+            let (session_room, mut user_id) = util::get_session(cookie);
+            println!("session cookie values room: {} user_id: {}", session_room, user_id);
+            if user_id.is_empty() { 
+              user_id = game::make_user_id();
+              set_session = true; 
+            }
+            else if session_room != room { set_session = true; }
+            
+            if set_session {
+              let cookie_value = format!("session={}:{}; SameSite=Strict; HttpOnly=true; Path=/;", room, user_id);
+              response.headers_mut().insert(header::SET_COOKIE, HeaderValue::from_str(&cookie_value).unwrap());
+            }
+
             game::join_game(game_arc, user_id, room);
 
             let index_file: String = "index.html".to_string();
@@ -204,7 +200,7 @@ async fn controller(
                     .to_string();
                   println!("Media type guess {}", media_type);
                   response.headers_mut().insert(
-                    hyper::header::CONTENT_TYPE,
+                    header::CONTENT_TYPE,
                     HeaderValue::from_str(&media_type).unwrap(),
                   );
                   *response.body_mut() = Body::from(file);
@@ -239,10 +235,7 @@ async fn controller(
     _ => {
       let mut response = Response::default();
       *response.status_mut() = StatusCode::METHOD_NOT_ALLOWED;
-      response.headers_mut().insert(
-        hyper::header::ALLOW,
-        HeaderValue::from_str("GET, POST").unwrap(),
-      );
+      response.headers_mut().insert(header::ALLOW, HeaderValue::from_str("GET, POST").unwrap());
       Ok(response)
     }
   }
@@ -250,11 +243,23 @@ async fn controller(
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+
   let games = game::new_game();
   // TODO implement TLS
-  let socket_address = ([127, 0, 0, 1], 7878).into();
+  let socket_address = ([0, 0, 0, 0], 7878).into();
   let server = Server::bind(&socket_address).serve(GameServiceMaker { games: games });
-  println!("Serving game at {}", socket_address);
+  println!("Not Hello World, or is it!?!?!?");
+  println!("\nDuckception started at {}", socket_address);
   server.await?;
+  Ok(())
+}
+
+fn test_thread() -> Result<(), ()> {
+  let child = thread::spawn(move || loop {
+    thread::sleep(Duration::from_secs(5));
+    println!("HELLOOOOOO WORLD");
+  });
+
+  let res = child.join();
   Ok(())
 }

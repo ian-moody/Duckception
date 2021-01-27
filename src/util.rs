@@ -1,6 +1,7 @@
 use hyper::{ header::{ AsHeaderName, HeaderMap, HeaderValue} };
 use tokio::fs;
 use regex::Regex;
+use uuid::Uuid;
 
 // COMPILE TIME FILE INCLUDES
 // static INDEDX_HTML: &str = include_str!("../dist/index.html");
@@ -19,14 +20,17 @@ pub async fn get_web_file(file_name: &String) -> Result<Vec<u8>, std::io::Error>
   fs::read(file_loc).await
 }
 
-pub fn get_user_id_cookie(cookies: &HeaderValue) -> &str {
+pub fn get_session(a: &str) -> (&str, String) {
   lazy_static! {
-    static ref USER_ID_REGEX: Regex = Regex::new(r"user_id=[^;]+").unwrap();
+    static ref USER_ID_REGEX: Regex = Regex::new(r"session=[^;]+").unwrap();
   }
-  let a = cookies.to_str().unwrap();
   match USER_ID_REGEX.find(a) {
-    Some(mat) => &a[mat.start() + 8..mat.end()],
-    None => "",
+    Some(mat) => {
+      let parts = &a[mat.start()..mat.end()].split(":").collect::<Vec<&str>>();
+      // TODO Handle case where cookie is not a valid UUID
+      (&parts[0][8..], Uuid::parse_str(parts[1]).unwrap().to_string())
+    },
+    None => ("", "".to_string()),
   }
 }
 

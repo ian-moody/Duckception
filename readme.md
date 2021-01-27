@@ -9,11 +9,9 @@ you will require the following dependencies
 - Node + npm
 
 ```bash 
-npm run server # Starts the rust backend, uses cargo to fetch and compile directories
-npm run web # Start parcel in watch mode, bundling into the dist directory
-npm run build_web # parcel builds production version of the web assets
-npm run build_server # build production version of server
-npm run serve # Have parcel serve instead of the server ex. for testing css quickly
+cargo run # Starts the rust backend, uses cargo to fetch and compile directories
+npm start # Start parcel in watch mode, bundling into the dist directory
+./build_full # Builds parcel production version of the web assets & production version of server in docker container
 ```
 
 ## Build

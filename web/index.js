@@ -1,20 +1,23 @@
-import { cool } from './test'
+import { addPlayer } from './players'
 
 let socket
-let send_message = () => { console.log('Socket has not been opened') }
+let send_message = () => console.error('Socket has not been opened yet')
 
 const openGameSocket = () => {
+
+  // TODO string replace with a actual location at server start 
   socket = new WebSocket('ws://localhost:7878/ws')
-  
+
   socket.addEventListener('open', event => {
     send_message = message => socket.send(message)
   })
-  
+
   socket.addEventListener('message', event => {
     const message = event.data
     console.log('Got message from socket', message)
-    document.cookie = `last_response=${message};SameSite=Strict`
+    addPlayer(message)
   })
+
 }
 
 
@@ -79,9 +82,7 @@ const dayTransition = checked => {
 window.addEventListener('DOMContentLoaded', () => {
 
   openGameSocket()
-
-  cool()
-
+  
   if (process.env.NODE_ENV !== 'production') {
     document.getElementById('debug').style.display = 'block'
     // const debug = document.createElement('div')

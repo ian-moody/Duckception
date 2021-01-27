@@ -1,5 +1,5 @@
 #! /bin/sh
 
-rm -rf dist
-npm run build_web
-npm run build_server
+rm -rf dist &&
+./node_modules/.bin/parcel build web/index.html web/404.html --public-url /web &&
+docker build -t duckception .
