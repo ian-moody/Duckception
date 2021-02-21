@@ -1,5 +1,7 @@
 target
+parcel-bundle-reports
 node_modules
 dist
 .cache
+.parcel-cache
 .DS_Store

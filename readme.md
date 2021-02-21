@@ -14,6 +14,13 @@ npm start # Start parcel in watch mode, bundling into the dist directory
 ./build_full # Builds parcel production version of the web assets & production version of server in docker container
 ```
 
+## Heroku deployment
+https://dashboard.heroku.com/apps/duckception
+```bash
+heroku container:login
+heroku container:push web
+heroku container:release web
+```
 ## Build
 
 run ```build_full.sh``` located in the root directory for a full build

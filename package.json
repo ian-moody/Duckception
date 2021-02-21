@@ -1,10 +1,24 @@
 {
   "version": "0.1.0",
+  "license": "UNLICENSED",
   "scripts": {
-    "start": "parcel watch web/index.html web/404.html --public-url /web"
+    "start": "parcel watch web/index.html web/404.html --public-url /web",
+    "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build web/index.html web/404.html --public-url /web"
   },
   "devDependencies": {
-    "parcel-bundler": "^1.12.4",
-    "sass": "^1.30.0"
+    "@parcel/optimizer-cssnano": "^2.0.0-nightly.605",
+    "@parcel/optimizer-htmlnano": "^2.0.0-nightly.605",
+    "@parcel/packager-css": "^2.0.0-nightly.605",
+    "@parcel/packager-html": "^2.0.0-nightly.605",
+    "@parcel/transformer-css": "^2.0.0-nightly.605",
+    "@parcel/transformer-html": "^2.0.0-nightly.605",
+    "@parcel/transformer-image": "^2.0.0-nightly.2227",
+    "@parcel/transformer-postcss": "^2.0.0-nightly.605",
+    "@parcel/transformer-posthtml": "^2.0.0-nightly.605",
+    "@parcel/transformer-sass": "^2.0.0-nightly.605",
+    "parcel": "^2.0.0-nightly.603",
+    "postcss": "^8.2.6",
+    "sass": "^1.32.8",
+    "sharp": "^0.27.1"
   }
 }

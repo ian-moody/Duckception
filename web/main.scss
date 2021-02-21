@@ -4,7 +4,7 @@
   font-style: normal;
   font-weight: 400;
   src: local('Source Sans Pro Regular'), local('SourceSansPro-Regular'),
-    url('./source-sans-pro-v14-latin-regular.woff2') format('woff2');
+    url('./assets/source-sans-pro-v14-latin-regular.woff2') format('woff2');
 }
 
 body {
@@ -111,6 +111,7 @@ input[type=text]:focus {
 }
 
 .profile {
+  font-family: 'Source Sans Pro', sans-serif;
   cursor: pointer;
   box-sizing: content-box;
   outline: none;
@@ -306,7 +307,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 
 .side-a {
-	background-image: url("./card-back.svg");
+	background-image: url("./assets/card-back.svg");
 }
 
 .side-b {

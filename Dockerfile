@@ -24,4 +24,4 @@ FROM scratch
 COPY --from=builder /proj/duckception .
 COPY ./dist ./dist/
 USER 1000
-ENTRYPOINT ["./duckception"]
+ENTRYPOINT ["./duckception", "$PORT"]

@@ -3,10 +3,9 @@ import { addPlayer } from './players'
 let socket
 let send_message = () => console.error('Socket has not been opened yet')
 
-const openGameSocket = () => {
+const openGameSocket = ws_url => {
 
-  // TODO string replace with a actual location at server start 
-  socket = new WebSocket('ws://localhost:7878/ws')
+  socket = new WebSocket(ws_url)
 
   socket.addEventListener('open', event => {
     send_message = message => socket.send(message)
@@ -15,7 +14,7 @@ const openGameSocket = () => {
   socket.addEventListener('message', event => {
     const message = event.data
     console.log('Got message from socket', message)
-    addPlayer(message)
+    addPlayer(message, 'prof1')
   })
 
 }
@@ -81,8 +80,11 @@ const dayTransition = checked => {
 // window.onload = () => {
 window.addEventListener('DOMContentLoaded', () => {
 
-  openGameSocket()
-  
+  addPlayer('Daniel', 'prof2')
+  addPlayer('Jackie', 'prof1')
+  addPlayer('Samueal', 'prof4')
+  addPlayer('Sarrah', 'prof3')
+
   if (process.env.NODE_ENV !== 'production') {
     document.getElementById('debug').style.display = 'block'
     // const debug = document.createElement('div')
@@ -90,7 +92,9 @@ window.addEventListener('DOMContentLoaded', () => {
     // debug.innerHTML = ``
     // document.body.appendChild(debug)
   }
-  const { pathname, ...rest } = window.location
+  const { pathname, host } = window.location
+
+  openGameSocket(`ws://${host}/ws`)
 
   roleCard = document.getElementById('role-card')
   roleCard.onmousemove = roleCardMouseListener
