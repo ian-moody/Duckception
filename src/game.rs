@@ -36,12 +36,12 @@ pub type SharedGames = Arc<Mutex<HashMap<String, GameRoom>>>;
 pub fn make_user_id() -> String { Uuid::new_v4().to_string() }
 
 pub fn join_game(games: SharedGames, id: String, room_name: &str) {
-  println!("{} is joining Room: {}", id, room_name);
+  info!("{} is joining Room: {}", id, room_name);
   let mut games = games.lock().unwrap();
 
   let current_games = games.keys();
   for (i, key) in current_games.enumerate() {
-    println!("Current Games {} :: {}", i, key);
+    info!("Current Games {} :: {}", i, key);
   }
 
   let room_key = room_name.to_string();
@@ -49,17 +49,17 @@ pub fn join_game(games: SharedGames, id: String, room_name: &str) {
     Some(val) => {
       match val.players.iter().find(|p| p.id == id) {
         Some(you) => {
-          println!("Found you! {}: {}", you.id, you.name);
+          info!("Found you! {}: {}", you.id, you.name);
         }
         None => {
-          println!("Didn't find you!");
+          info!("Didn't find you!");
           val.players.push(Player::new(id));
         }
       };
       val
     }
     None => {
-      println!("Adding new game {}", room_key);
+      info!("Adding new game {}", room_key);
       let mut vec = Vec::with_capacity(20);
       vec.push(Player::new(id));
       games.insert(room_key.clone(), GameRoom { players: vec });
@@ -67,11 +67,10 @@ pub fn join_game(games: SharedGames, id: String, room_name: &str) {
     }
   };
 
-  println!("Player count: {}", game.players.len());
+  info!("Player count: {}", game.players.len());
   for p in &game.players {
-    println!("  {}: {}", p.id, p.name);
+    info!("  {}: {}", p.id, p.name);
   }
-  println!("\n");
 }
 
 pub fn new_game() -> SharedGames {

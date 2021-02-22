@@ -1,17 +1,28 @@
 # Duckception
 
-An implementation of the Mafia/Werewolf party game to be played online. Development commands will be located in the top level ```package.json``` file and in root level scripts.
+An implementation of the Mafia/Werewolf party game to be played online. 
 
 ## Development
-
 you will require the following dependencies
 - Rust + Cargo
 - Node + npm
 
 ```bash 
-cargo run # Starts the rust backend, uses cargo to fetch and compile directories
-npm start # Start parcel in watch mode, bundling into the dist directory
-./build_full # Builds parcel production version of the web assets & production version of server in docker container
+ # Starts the rust backend, uses cargo to fetch and compile directories
+ cargo run
+ # Start parcel in watch mode, bundling into the dist directory
+ npm start
+ # Builds parcel production version of the web assets & production version of server in docker container
+ ./build_full
+```
+
+Development commands will be located in the top level ```package.json``` file and in root level scripts.
+
+## Logging
+Example of info logging, prints to stdout & stderr
+using https://crates.io/crates/env_logger for logging
+```bash 
+RUST_LOG=trace cargo run 
 ```
 
 ## Heroku deployment
@@ -21,9 +32,6 @@ heroku container:login
 heroku container:push web
 heroku container:release web
 ```
-## Build
-
-run ```build_full.sh``` located in the root directory for a full build
 
 ## Learning and development takeaways
 

@@ -10,8 +10,6 @@ use std::{
     env,
     pin::Pin,
     task::{Context, Poll},
-    thread,
-    time::Duration,
 };
 #[macro_use]
 extern crate lazy_static;
@@ -19,6 +17,9 @@ use mime_guess;
 use tokio_tungstenite::{tungstenite::protocol, WebSocketStream};
 mod game;
 mod util;
+
+#[macro_use]
+extern crate log;
 
 struct GameService {
     games: game::SharedGames,
@@ -66,7 +67,7 @@ fn upgrade_connection(
     ),
     Response<Body>,
 > {
-    println!("Websocket handshake started!");
+    info!("Websocket handshake started!");
     let mut res = Response::new(Body::empty());
     let headers = req.headers();
     let key = headers.typed_get::<headers::SecWebsocketKey>();
@@ -89,9 +90,9 @@ fn upgrade_connection(
         let upgraded = req
             .into_body()
             .on_upgrade()
-            .map_err(|err| println!("Cannot create websocket: {} ", err))
+            .map_err(|err| error!("Cannot create websocket: {} ", err))
             .and_then(|upgraded| async {
-                println!("Connection upgraded to websocket");
+                info!("Connection upgraded to websocket");
                 let r =
                     WebSocketStream::from_raw_socket(upgraded, protocol::Role::Server, None).await;
                 Ok(r)
@@ -111,11 +112,11 @@ fn handle_ws_connection(req: Request<Body>) -> Result<Response<Body>, std::io::E
             let ws_task = async {
                 match ws.await {
                     Ok(ws) => {
-                        println!("Spawning WS");
+                        info!("Spawning WS");
                         let mut counter = 0;
                         let (tx, rc) = ws.split();
                         let rc = rc.try_filter_map(|m| {
-                            println!("Got Message {:?}", m);
+                            info!("Got Message {:?}", m);
                             future::ok(match m {
                                 protocol::Message::Text(t) => {
                                     counter += 1;
@@ -129,11 +130,11 @@ fn handle_ws_connection(req: Request<Body>) -> Result<Response<Body>, std::io::E
                         });
 
                         match rc.forward(tx).await {
-                            Err(e) => println!("ws Error! {:?}", e),
-                            Ok(_) => println!("WEBSCOKET ENDED"),
+                            Err(e) => error!("ws Error! {:?}", e),
+                            Ok(_) => info!("WEBSCOKET ENDED"),
                         }
                     }
-                    Err(e) => println!("ws Error! {:?}", e),
+                    Err(e) => error!("ws Error! {:?}", e),
                 }
             };
 
@@ -160,9 +161,9 @@ async fn controller(
             let path_parts: Vec<&str> = req.uri().path().split("/").collect();
             let res = match path_parts[1] {
                 "ws" => {
-                    println!("Websocket handshake started!");
+                    info!("Websocket handshake started!");
                     let headers = req.headers();
-                    println!("We got these headers: {:?}", headers);
+                    debug!("We got these headers: {:?}", headers);
                     handle_ws_connection(req).unwrap_or_else(|e| error_response(e.to_string()))
                 }
                 "room" => {
@@ -176,7 +177,7 @@ async fn controller(
                         };
 
                         let (session_room, mut user_id) = util::get_session(cookie);
-                        println!(
+                        info!(
                             "session cookie values room: {} user_id: {}",
                             session_room, user_id
                         );
@@ -222,7 +223,7 @@ async fn controller(
                                     let media_type = mime_guess::from_path(&requested_file)
                                         .first_or_octet_stream()
                                         .to_string();
-                                    println!("Media type guess {}", media_type);
+                                    info!("Media type guess {}", media_type);
                                     response.headers_mut().insert(
                                         header::CONTENT_TYPE,
                                         HeaderValue::from_str(&media_type).unwrap(),
@@ -240,7 +241,7 @@ async fn controller(
                 }
                 "action" => match path_parts[2] {
                     "thing" => {
-                        println!("thing endpoint hit!");
+                        info!("thing endpoint hit!");
                         Response::new(Body::from("thing endpoint hit!"))
                     }
                     _ => Response::new(Body::empty()),
@@ -269,27 +270,19 @@ async fn controller(
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    env_logger::init();
     let args = env::args().collect::<Vec<String>>();
     let port: u16 = match args.get(1) {
         Some(val) => val.parse().unwrap_or(7878),
         None => 7878,
     };
     let games = game::new_game();
+
     // TODO implement TLS
     let socket_address = ([0, 0, 0, 0], port).into();
     let server = Server::bind(&socket_address).serve(GameServiceMaker { games: games });
-    println!("Not Hello World, or is it!?!?!?");
-    println!("\nDuckception started at {}", socket_address);
+    info!("Duckception started at {}", socket_address);
     server.await?;
-    Ok(())
-}
 
-fn test_thread() -> Result<(), ()> {
-    let child = thread::spawn(move || loop {
-        thread::sleep(Duration::from_secs(5));
-        println!("HELLOOOOOO WORLD");
-    });
-
-    let res = child.join();
     Ok(())
 }
