@@ -8,9 +8,11 @@ const profile_pictures = { prof1, prof2, prof3, prof4 }
 
 const picsum = 'https://picsum.photos/300/300?grayscale'
 
-export const addPlayer = (text, pictureName) => {
-  const b = document.createElement('button')
-  b.className = 'card profile'
-  b.innerHTML = `${text} <img src="${profile_pictures[pictureName] || picsum}" />`
-  document.getElementById('players').appendChild(b)
+export const create_player = (text, pictureName) => {
+  const node = document.createElement('button')
+  node.className = 'card profile'
+  node.innerHTML = `${text} <img class="avatar" src="${profile_pictures[pictureName] || picsum}" />`
+  return node
 }
+
+export const add_player = player_node => document.getElementById('players').appendChild(player_node)

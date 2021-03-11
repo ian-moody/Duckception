@@ -13,7 +13,7 @@ RUN rm src/*.rs
 
 # Build the whole app
 COPY ./src ./src/
-# For when we bundle assets with the binary
+# For when we bundle assets with the binary, we'll want to copy the web distrobution for compile time static file inclusion
 # COPY ./dist ./dist/
 RUN cargo build --target x86_64-unknown-linux-musl --release --features include_site
 RUN mv /proj/target/x86_64-unknown-linux-musl/release/duckception .

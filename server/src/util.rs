@@ -1,6 +1,5 @@
 use hyper::header::{AsHeaderName, HeaderMap, HeaderValue};
 use regex::Regex;
-use tokio::fs;
 use uuid::Uuid;
 
 // COMPILE TIME FILE INCLUDES
@@ -13,12 +12,6 @@ use uuid::Uuid;
 //     _ => NOT_FOUND_HTML,
 //   }
 // }
-
-pub async fn get_web_file(file_name: &String) -> Result<Vec<u8>, std::io::Error> {
-    let file_loc = format!("dist/{}", file_name);
-    info!("Getting file: {}", file_loc);
-    fs::read(file_loc).await
-}
 
 pub fn get_session(a: &str) -> (&str, String) {
     lazy_static! {

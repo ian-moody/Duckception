@@ -1,126 +1,101 @@
-import { addPlayer } from './players'
+import { add_player, create_player } from './players'
+import { init_landing_page } from './landing'
+import { set_role_card } from './role'
+import { dayTransition, init_transitioner } from './transitioner'
+import game from './game'
 
-let socket
-let send_message = () => console.error('Socket has not been opened yet')
 
-const openGameSocket = ws_url => {
+const get_room_name = () => decodeURIComponent(window.location.hash).substring(1)
 
-  socket = new WebSocket(ws_url)
+const pages = {}
 
-  socket.addEventListener('open', event => {
-    send_message = message => socket.send(message)
+const init_pages = () => {
+  const html_pages = [...document.getElementsByClassName('page')]
+  html_pages.forEach(page => {
+    document.body.removeChild(page)
+    page.style.display = 'flex'
+    pages[page.id] = page
   })
-
-  socket.addEventListener('message', event => {
-    const message = event.data
-    console.log('Got message from socket', message)
-    addPlayer(message, 'prof1')
-  })
-
 }
 
-
-let roleCard, callCount = 0
-const roleCardMouseListener = e => {
-  const rect = e.target.getBoundingClientRect()
-  const x_center = rect.width / 2, y_center = rect.height / 2
-  // console.log(rect)
-  const x = e.clientX - rect.left - x_center
-  const y = e.clientY - rect.top - y_center
-  callCount++
-  // console.log(callCount, x, y)
-  const hyp = Math.sqrt(x * x + y * y)
-  roleCard.setAttribute('style', `transform: rotate3d(${y}, ${-x}, 0, ${hyp * .1}deg); transition: 0s`)
+let current_page_name
+const show_page = name => {
+  if (!(name in pages)) throw new Error(`Trying to show page '${name}' by is not there`)
+  console.log('current_page_name', current_page_name)
+  if (current_page_name) document.body.removeChild(pages[current_page_name])
+  document.body.prepend(pages[name])
+  current_page_name = name
 }
 
-// Might not need , cannot read cookie for a different path
+let game_room_initailized = false
+let inc = 1
 
-// const getCookie = cookie_name => {
-//   const name = cookie_name + '='
-//   const ca = decodeURIComponent(document.cookie).split(';')
-//   console.log(document.cookie, ca)
-//   for (let i = 0; i < ca.length; i++) {
-//     const c = ca[i]
-//     while (c.charAt(0) == ' ') c = c.substring(1)
-//     if (c.indexOf(name) == 0) return c.substring(name.length, c.length)
-//   }
-//   return ''
-// }
-
-const sleepComments = [
-  'Good night',
-  'Sleep well',
-  'Sweet dreams',
-  'Lights out',
-  'Go to sleep'
+const test_players = [
+  create_player('Daniel', 'prof2'),
+  create_player('Jackie', 'prof1'),
+  create_player('Samueal', 'prof4'),
+  create_player('Sarrah', 'prof3')
 ]
 
-const wakeComments = [
-  'Good morning',
-  'Wake up'
-]
+const init_game_room_page = () => {
+  if (!game_room_initailized) {
+    const leave_room = document.getElementById('leave-room')
+    leave_room.onclick = () => window.location.hash = ''
 
-const randArrayIndex = arr => Math.floor(Math.random() * arr.length)
-const choose = arr => arr[randArrayIndex(arr)]
+    const button = document.getElementById('submit_name')
+    const name_input = document.getElementById('name_input')
 
-let transition
-const dayTransition = checked => {
-  transition.innerHTML = 'Day 1<br/>' + choose(checked ? sleepComments : wakeComments)
-  transition.classList.toggle('on')
-  transition.classList.add(checked ? 'sleep' : 'wake')
-  transition.classList.remove(checked ? 'wake' : 'sleep')
-  setTimeout(() => {
-    document.body.classList.toggle('dark', checked)
-    setTimeout(() => transition.classList.toggle('on'), 500)
-  }, 1100)
-}
+    button.addEventListener('click', e => {
+      game.send_message(name_input.value + ' increment ' + inc++)
+    })
 
+    // use player card???
+    // const you = create_player('Your name!', 'prof1')
+    // document.getElementById('yourself').replaceWith(you)
 
+    test_players.forEach(node => add_player(node))
 
-// window.onload = () => {
-window.addEventListener('DOMContentLoaded', () => {
+    set_role_card()
+    init_transitioner()
 
-  addPlayer('Daniel', 'prof2')
-  addPlayer('Jackie', 'prof1')
-  addPlayer('Samueal', 'prof4')
-  addPlayer('Sarrah', 'prof3')
+    const roleCard = document.getElementById('role-card')
+    roleCard.onclick = () => roleCard.classList.add('flipped')
 
-  if (process.env.NODE_ENV !== 'production') {
-    document.getElementById('debug').style.display = 'block'
-    // const debug = document.createElement('div')
-    // debug.id = 'debug'
-    // debug.innerHTML = ``
-    // document.body.appendChild(debug)
+    if (process.env.NODE_ENV !== 'production') document.getElementById('debug').style.display = 'block'
+
+    const theme_toggle = document.getElementById('theme_toggle')
+    theme_toggle.addEventListener('change', function () { dayTransition(this.checked) })
+    const info = document.getElementById('info')
+    info.innerHTML = `room: ${get_room_name()} <br>`
+
+    game_room_initailized = true
   }
-  const { pathname, host } = window.location
+}
 
-  openGameSocket(`ws://${host}/ws`)
+const enter_room = room_name => {
+  console.log('Entering Room', room_name)
+  game.send_message(`JOIN:${room_name}`)
+  show_page('game-room')
+  init_game_room_page()
+}
 
-  roleCard = document.getElementById('role-card')
-  roleCard.onmousemove = roleCardMouseListener
-  roleCard.onmouseleave = () => roleCard.removeAttribute('style')
+const enter_landing = () => {
+  console.log('Entering Landing')
+  show_page('landing')
+  init_landing_page()
+}
 
-  transition = document.getElementById('transition')
-  const button = document.getElementById('submit_name')
-  const input = document.getElementById('name_input')
+const navigate = () => {
+  const room_name = get_room_name()
+  if (room_name) enter_room(room_name)
+  else enter_landing()
+}
+
+window.onhashchange = navigate
+
+window.addEventListener('DOMContentLoaded', () => {
+  init_pages()
   const version = document.getElementById('version')
-  const info = document.getElementById('info')
-  const theme_toggle = document.getElementById('theme_toggle')
-
-  theme_toggle.addEventListener('change', function () { dayTransition(this.checked) })
   version.innerHTML = `Version ${process.env.npm_package_version}`
-  info.innerHTML = `
-  path: ${pathname} <br>
-  room: ${pathname.split('/')[2]} <br>
-  `
-
-  button.addEventListener('click', e => {
-    console.log('Button pressed')
-    send_message(input.value)
-  })
-
-  input.addEventListener('input', e => {
-    console.log('text changed', input.value)
-  })
-
+  game.open_game_socket(`ws://${window.location.host}/ws`, navigate)
 })

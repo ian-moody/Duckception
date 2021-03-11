@@ -17,6 +17,7 @@ use mime_guess;
 use tokio_tungstenite::{tungstenite::protocol, WebSocketStream};
 mod game;
 mod util;
+use tokio::fs;
 
 #[macro_use]
 extern crate log;
@@ -67,7 +68,7 @@ fn upgrade_connection(
     ),
     Response<Body>,
 > {
-    info!("Websocket handshake started!");
+    info!("Started websocket connection upgrade");
     let mut res = Response::new(Body::empty());
     let headers = req.headers();
     let key = headers.typed_get::<headers::SecWebsocketKey>();
@@ -105,16 +106,53 @@ fn upgrade_connection(
     }
 }
 
+fn room_stuff(room: String) {
+    /*
+    let mut set_session = false;
+
+    let cookie = match req.headers().get("Cookie") {
+        Some(c) => c.to_str().unwrap_or(""),
+        None => "",
+    };
+
+    let (session_room, mut user_id) = util::get_session(cookie);
+    info!(
+        "session cookie values room: {} user_id: {}",
+        session_room, user_id
+    );
+    if user_id.is_empty() {
+        user_id = game::make_user_id();
+        set_session = true;
+    } else if session_room != room {
+        set_session = true;
+    }
+
+    if set_session {
+        let cookie_value = format!(
+            "session={}:{}; SameSite=Strict; HttpOnly=true; Path=/;",
+            room, user_id
+        );
+        response.headers_mut().insert(
+            header::SET_COOKIE,
+            HeaderValue::from_str(&cookie_value).unwrap(),
+        );
+    }
+    game::join_game(game_arc, user_id, room);
+    */
+}
+
 fn handle_ws_connection(req: Request<Body>) -> Result<Response<Body>, std::io::Error> {
     let res = match upgrade_connection(req) {
         Err(res) => res,
         Ok((res, ws)) => {
+
             let ws_task = async {
                 match ws.await {
                     Ok(ws) => {
                         info!("Spawning WS");
                         let mut counter = 0;
                         let (tx, rc) = ws.split();
+
                         let rc = rc.try_filter_map(|m| {
                             info!("Got Message {:?}", m);
                             future::ok(match m {
@@ -152,6 +190,34 @@ fn error_response(err: String) -> Response<Body> {
         .unwrap()
 }
 
+async fn get_web_resource(requested_resource: String) -> Response<Body> {
+    let mut response = Response::new(Body::empty());
+    // TODO brotti compression if supported
+    // https://crates.io/crates/async-compression
+    let file_loc = format!("../web/dist/{}", requested_resource);
+    match fs::read(&file_loc).await {
+        Ok(file) => {
+            let media_type = mime_guess::from_path(&file_loc)
+                .first_or_octet_stream()
+                .to_string();
+            info!(
+                "Found requested resource \"{}\" with a \"{}\" MIME type",
+                file_loc, media_type
+            );
+            response.headers_mut().insert(
+                header::CONTENT_TYPE,
+                HeaderValue::from_str(&media_type).unwrap(),
+            );
+            *response.body_mut() = Body::from(file);
+        }
+        Err(_) => {
+            warn!("Couldn't find requested resource: {}", file_loc);
+            *response.status_mut() = StatusCode::NOT_FOUND
+        }
+    }
+    response
+}
+
 async fn controller(
     req: Request<Body>,
     game_arc: game::SharedGames,
@@ -159,102 +225,14 @@ async fn controller(
     match req.method() {
         &Method::GET => {
             let path_parts: Vec<&str> = req.uri().path().split("/").collect();
+            debug!("Request path parts: {:?}", path_parts);
+            trace!("We got these headers: {:?}", req.headers());
             let res = match path_parts[1] {
-                "ws" => {
-                    info!("Websocket handshake started!");
-                    let headers = req.headers();
-                    debug!("We got these headers: {:?}", headers);
-                    handle_ws_connection(req).unwrap_or_else(|e| error_response(e.to_string()))
-                }
-                "room" => {
-                    let mut response = Response::new(Body::empty());
-                    if path_parts.len() == 3 {
-                        let mut set_session = false;
-                        let room = path_parts[2];
-                        let cookie = match req.headers().get("Cookie") {
-                            Some(c) => c.to_str().unwrap_or(""),
-                            None => "",
-                        };
-
-                        let (session_room, mut user_id) = util::get_session(cookie);
-                        info!(
-                            "session cookie values room: {} user_id: {}",
-                            session_room, user_id
-                        );
-                        if user_id.is_empty() {
-                            user_id = game::make_user_id();
-                            set_session = true;
-                        } else if session_room != room {
-                            set_session = true;
-                        }
-
-                        if set_session {
-                            let cookie_value = format!(
-                                "session={}:{}; SameSite=Strict; HttpOnly=true; Path=/;",
-                                room, user_id
-                            );
-                            response.headers_mut().insert(
-                                header::SET_COOKIE,
-                                HeaderValue::from_str(&cookie_value).unwrap(),
-                            );
-                        }
-
-                        game::join_game(game_arc, user_id, room);
-
-                        let index_file: String = "index.html".to_string();
-                        *response.body_mut() = match util::get_web_file(&index_file).await {
-                            Ok(file) => Body::from(file),
-                            Err(_) => Body::empty(),
-                        };
-                    }
-                    response
-                }
-                "web" => {
-                    let mut response = Response::new(Body::empty());
-                    if path_parts.len() >= 2 {
-                        let requested_file = path_parts[2..].join("/");
-                        let mut problem = true;
-                        // TODO brotti compression if supported
-                        // https://crates.io/crates/async-compression
-                        if !requested_file.ends_with(".html") {
-                            match util::get_web_file(&requested_file).await {
-                                Ok(file) => {
-                                    problem = false;
-                                    let media_type = mime_guess::from_path(&requested_file)
-                                        .first_or_octet_stream()
-                                        .to_string();
-                                    info!("Media type guess {}", media_type);
-                                    response.headers_mut().insert(
-                                        header::CONTENT_TYPE,
-                                        HeaderValue::from_str(&media_type).unwrap(),
-                                    );
-                                    *response.body_mut() = Body::from(file);
-                                }
-                                Err(_) => {}
-                            }
-                        }
-                        if problem {
-                            *response.status_mut() = StatusCode::NOT_FOUND;
-                        }
-                    }
-                    response
-                }
-                "action" => match path_parts[2] {
-                    "thing" => {
-                        info!("thing endpoint hit!");
-                        Response::new(Body::from("thing endpoint hit!"))
-                    }
-                    _ => Response::new(Body::empty()),
-                },
-                _ => {
-                    let a = "404.html".to_string();
-                    Response::new(match util::get_web_file(&a).await {
-                        Ok(not_found_file) => Body::from(not_found_file),
-                        Err(_) => Body::empty(),
-                    })
-                }
+                "" => get_web_resource("index.html".to_string()).await,
+                "web" => get_web_resource(path_parts[2..].join("/")).await,
+                "ws" => handle_ws_connection(req).unwrap_or_else(|e| error_response(e.to_string())),
+                _ => Response::new(Body::empty()),
             };
-
             Ok(res)
         }
         _ => {
@@ -262,7 +240,7 @@ async fn controller(
             *response.status_mut() = StatusCode::METHOD_NOT_ALLOWED;
             response
                 .headers_mut()
-                .insert(header::ALLOW, HeaderValue::from_str("GET, POST").unwrap());
+                .insert(header::ALLOW, HeaderValue::from_str("GET").unwrap());
             Ok(response)
         }
     }
@@ -281,7 +259,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // TODO implement TLS
     let socket_address = ([0, 0, 0, 0], port).into();
     let server = Server::bind(&socket_address).serve(GameServiceMaker { games: games });
-    info!("Duckception started at {}", socket_address);
+    info!("Server started {}", socket_address);
     server.await?;
 
     Ok(())

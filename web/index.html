@@ -13,46 +13,85 @@
 
 <body>
 
-  <noscript>
-    Javascript is required to Duckception
-  </noscript>
+  <noscript>Javascript is required for Duckception</noscript>
 
-  <div id="side">
 
-    <div style="font-size: x-large;">Welcome to Duckception</div>
-    <div>currently you are a spectator.</div>
-    <br />
-    <input type="text" id="name_input" name="name" placeholder="Name" autocomplete="off">
-    <button id="submit_name" class="but">Join</button>
+  <div id="landing" class="page"
+    style="display: none; flex-direction: column; width: 100%; height: 100vh; justify-content: center; align-items: center;">
 
-    <div id="card-area" style="height: 450px; display: flex; align-items: center; perspective: 800px;">
-      <div id="role-card">
-        <div class="side-a"></div>
-        <div class="side-b">COOL</div>
+    <div style="margin-bottom: 2em;">
+      <div style="font-size: 5em; font-family: 'Homemade Apple';">Duckception</div>
+      <div style="font-size: 1.2em; margin-top: -2.5em; margin-left: 1.5em; color: #686868;">
+        A social game of deception
       </div>
     </div>
 
+    <div>
+
+      <input type="text" id="room_input" style="width: 25em;" placeholder="Room" autocomplete="off">
+
+      <div style="display: flex; margin-top: 1em;">
+        <button id="randomize_room_name" class="but">Randomize Room</button>
+        <button id="join_or_create" class="but"
+          style="display: flex; flex: 1; margin-left: 1em; justify-content: center;">
+          Join or Create Room
+        </button>
+      </div>
+
+    </div>
   </div>
 
-  <div id="players">
+  <!-- <div style="font-size: 1.25em; font-family: 'Homemade Apple';  margin-left: 1em; margin-top: .25em;">Duckception</div> -->
 
-    <div id="spectate" class="card">
-      <div style="font-size: x-large;">James</div>
-      <div>Waiting for game to begin...</div>
-      <br />
+  <div id="game-room" class="page" style="display: none; flex-direction: column; padding-top: 4em;">
+
+    <div class="header" style="left: 0; border-bottom-right-radius: 15px;">
+      <b>First Player </b> is your game moderator
+    </div>
+
+    <div id="leave-room" class="header" style="right: 0; border-bottom-left-radius: 15px; cursor: pointer;">
+      Leave Room <img src="./assets/log-out.svg" alt="leave room button" style="height: 1em; margin-left: .5em;" />
+    </div>
+
+    <div style="display: flex; flex-direction: row;">
+
+      <div>
+
+        <div style="display: flex; font-size: 1.5em; align-items: center;">
+          <!-- <div id="your-name" style="display: none; width: 15em;">Fredbob</div> -->
+          <input type="text" id="name_input" style="display: block; width: 10em; font-size: 1.5rem;" placeholder="Name"
+            autocomplete="off" value="Fredbob">
+          <!-- <img src="./assets/edit.svg" alt="edit button" style="margin-left: .5em; cursor: pointer;" /> -->
+        </div>
+
+        <img class="avatar" src="https://picsum.photos/250/250?grayscale" />
+
+      </div>
+
+      <div id="card-area" style="display: flex; height: 250px; align-items: center; perspective: 800px;">
+        <div id="role-placeholder">Your role will appear here<br>when the game starts</div>
+        <div id="role-card">
+          <div id="side-a" class="card-side">Duckception<br>Role Card</div>
+          <div id="card-content" class="card-side">Side-b</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="players"></div>
+
+    <div id="transition"></div>
+
+    <div id="debug" style="display: none;">
+      <div>Mystery Switch</div>
+      <label class="switch"><input id="theme_toggle" type="checkbox"><span class="slider"></span></label>
+      <div id="info"></div>
+      <button id="submit_name" class="but">Test socket message</button>
     </div>
 
   </div>
 
   <div id="version"></div>
-
-  <div id="debug" style="display: none;">
-    <div>Mystery Switch</div>
-    <label class="switch"><input id="theme_toggle" type="checkbox"><span class="slider"></span></label>
-    <div id="info"></div>
-  </div>
-
-  <div id="transition"></div>
 
 </body>
 
