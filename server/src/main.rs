@@ -194,7 +194,7 @@ async fn get_web_resource(requested_resource: String) -> Response<Body> {
     let mut response = Response::new(Body::empty());
     // TODO brotti compression if supported
     // https://crates.io/crates/async-compression
-    let file_loc = format!("../web/dist/{}", requested_resource);
+    let file_loc = format!("./dist/{}", requested_resource);
     match fs::read(&file_loc).await {
         Ok(file) => {
             let media_type = mime_guess::from_path(&file_loc)
